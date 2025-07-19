@@ -1,3 +1,4 @@
 running_detection.v1i.yolov8/
 .DS_Store
 env/
+yolov8n-pose.pt
