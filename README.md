@@ -20,21 +20,10 @@ This system solves the challenging problem of accurately distinguishing between 
 ## 🛠️ Installation
 
 Install with:
-\`\`\`bash
+```
 pip install -r requirements.txt
-\`\`\`
+```
 
-## 📁 Project Structure
-
-\`\`\`
-running-detection/
-├── yolov8n_pose.py    # Main algorithm file
-├── requirements.txt                 # Python dependencies
-├── README.md                       # This file
-│── yolov8n-pose.pt            # YOLO pose model (auto-downloaded)
-├── running_person.mp4              # Input videos
-└── output_running.mp4                 # Processed output videos
-\`\`\`
 
 ## 🎮 Usage
 
@@ -45,12 +34,11 @@ running-detection/
    ```python
    video_path = "running_person.mp4"
    output_path = "output_results.mp4"
-   \`\`\`
+   ```
 3. **Run the detection**:
-   \`\`\`bash
+   ```
    python yolov8n_pose.py
-   \`\`\`
-
+    ```
 ### Configuration Parameters
 
 Key parameters you can adjust in the script:
