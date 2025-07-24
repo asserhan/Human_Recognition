@@ -2,3 +2,5 @@ running_detection.v1i.yolov8/
 .DS_Store
 env/
 yolov8n-pose.pt
+Copie_de_TensorFlow_with_GPU.ipynb
+merge_labels.py
