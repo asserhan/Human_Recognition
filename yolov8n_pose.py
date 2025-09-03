@@ -16,7 +16,7 @@ SECONDARY_VELOCITY_THRESHOLD = 250.0 # Higher confidence threshold (px/s)
 MIN_VELOCITY_THRESHOLD = 60.0        # Minimum to consider any movement
 MAX_VELOCITY_THRESHOLD = 500.0       # Filter unrealistic speeds
 
-MIN_FRAMES_FOR_ANALYSIS = 8       # Reduced for faster detection
+MIN_FRAMES_FOR_ANALYSIS = 6      # Reduced for faster detection
 CONFIDENCE_THRESHOLD = 0.5
 
 # Enhanced filtering (optional features)
@@ -527,17 +527,6 @@ def main():
     high_confidence_alerts = 0
     medium_confidence_alerts = 0
     
-    print("🎯 BALANCED RUNNING DETECTION FOR CCTV")
-    print("📋 Strategy: Velocity-primary with optional feature enhancement")
-    print(f"⚙️  Primary Velocity Threshold: {PRIMARY_VELOCITY_THRESHOLD} px/s")
-    print(f"⚙️  Secondary Velocity Threshold: {SECONDARY_VELOCITY_THRESHOLD} px/s")
-    print(f"⚙️  Vertical Analysis: {'Enabled' if USE_VERTICAL_ANALYSIS else 'Disabled'}")
-    print(f"⚙️  Consistency Check: {'Enabled' if USE_CONSISTENCY_CHECK else 'Disabled'}")
-    print("Press 'q' to quit early")
-    print("-" * 80)
-
-    start_time = time.time()
-    
     try:
         # Process video
         for result in model.track(source=VIDEO_PATH, stream=True, persist=True, verbose=False, conf=CONFIDENCE_THRESHOLD):
@@ -581,14 +570,11 @@ def main():
                         # High confidence alerts (every 30 frames = 1 second)
                         if person.confidence >= 0.7 and frame_count % 30 == 0:
                             time_in_video = frame_count / fps
-                            print(f"🏃 HIGH CONFIDENCE RUNNING! Person {track_id} at {time_in_video:.1f}s")
-                            print(f"   └─ Velocity: {person.current_velocity:.1f} px/s | Confidence: {person.confidence:.2f}")
                             high_confidence_alerts += 1
                         
                         # Medium confidence alerts (every 60 frames = 2 seconds)
                         elif person.confidence >= 0.5 and frame_count % 60 == 0:
                             time_in_video = frame_count / fps
-                            print(f"🤔 MEDIUM CONFIDENCE RUNNING: Person {track_id} at {time_in_video:.1f}s (Conf: {person.confidence:.2f})")
                             medium_confidence_alerts += 1
                     
                     # Draw information
@@ -624,15 +610,6 @@ def main():
             # Check for quit
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-            
-            # Progress update
-            if frame_count % 60 == 0:
-                progress = (frame_count / total_frames) * 100
-                elapsed_time = time.time() - start_time
-                processing_fps = frame_count / elapsed_time if elapsed_time > 0 else 0
-                running_velocities = [(track_id, person.current_velocity) for track_id, person in persons.items() if person.classification == "RUNNING"]
-                running_str = ', '.join([f"ID:{tid}={vel:.1f}px/s" for tid, vel in running_velocities]) if running_velocities else 'None'
-                print(f"📊 Progress: {progress:.1f}% | Processing: {processing_fps:.1f} FPS | Total Running: {total_running_detections} | High-Conf: {high_confidence_alerts} | Running Velocities: [{running_str}]")
 
     except KeyboardInterrupt:
         print("\n👋 Interrupted by user")
@@ -644,43 +621,9 @@ def main():
         cv2.destroyAllWindows()
         
         # Final comprehensive report
-        processing_time = time.time() - start_time
         video_duration = total_frames / fps
         
-        print(f"\n" + "="*100)
-        print(f"🎬 BALANCED RUNNING DETECTION ANALYSIS COMPLETE")
-        print(f"="*100)
-        print(f"📁 Input: {VIDEO_PATH}")
-        print(f"📁 Output: {OUTPUT_PATH}")
-        print(f"⏱️  Video Duration: {video_duration:.1f}s | Processing Time: {processing_time:.1f}s")
-        print(f"📊 Frames Processed: {frame_count}/{total_frames}")
-        print(f"👥 Persons Detected: {len(persons)}")
-        print(f"🏃 Total Running Detections: {total_running_detections}")
-        print(f"🎯 High-Confidence Alerts: {high_confidence_alerts}")
-        print(f"🤔 Medium-Confidence Alerts: {medium_confidence_alerts}")
-        
-        # Individual person summaries
-        if persons:
-            print(f"\n📋 INDIVIDUAL PERSON ANALYSIS:")
-            print(f"-" * 100)
-            for track_id, person in persons.items():
-                summary = person.get_overall_activity_summary(fps)
-                print(f"👤 Person {track_id}:")
-                print(f"   🎯 Overall: {summary['overall_classification']} (Confidence: {summary['confidence']:.2f})")
-                print(f"   📊 Running Time: {summary['running_time']:.1f}s ({summary['running_percentage']:.1f}%)")
-                print(f"   📊 Not Running Time: {summary['not_running_time']:.1f}s")
-                print(f"   📊 Max Velocity: {summary['max_velocity']:.1f} px/s | Avg: {summary['avg_velocity']:.1f} px/s")
-                if USE_VERTICAL_ANALYSIS and summary['avg_vertical_movement'] > 0:
-                    print(f"   📊 Avg Vertical Movement: {summary['avg_vertical_movement']:.1f}")
-                print(f"   📊 Frames Tracked: {summary['frames_tracked']}")
-                print()
-        
-        print(f"✅ Balanced analysis complete! Check {OUTPUT_PATH} for annotated video.")
-        print(f"\n💡 TUNING TIPS:")
-        print(f"   - If missing running: Lower PRIMARY_VELOCITY_THRESHOLD (currently {PRIMARY_VELOCITY_THRESHOLD})")
-        print(f"   - If too many false positives: Raise PRIMARY_VELOCITY_THRESHOLD or enable more features")
-        print(f"   - For low-res CCTV: Set USE_VERTICAL_ANALYSIS = False")
-        print(f"   - For high-res videos: Set USE_VERTICAL_ANALYSIS = True, lower VERTICAL_MOVEMENT_THRESHOLD")
+
 
 if __name__ == "__main__":
     main()
