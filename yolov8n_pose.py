@@ -11,12 +11,12 @@ OUTPUT_PATH = "output_running_detection.mp4"
 MODEL_PATH = "yolov8n-pose.pt"
 
 # BALANCED Detection parameters for CCTV
-PRIMARY_VELOCITY_THRESHOLD = 150.0   # Main threshold (px/s)
-SECONDARY_VELOCITY_THRESHOLD = 180.0 # Higher confidence threshold (px/s)
+PRIMARY_VELOCITY_THRESHOLD = 200.0   # Main threshold (px/s)
+SECONDARY_VELOCITY_THRESHOLD = 250.0 # Higher confidence threshold (px/s)
 MIN_VELOCITY_THRESHOLD = 60.0        # Minimum to consider any movement
 MAX_VELOCITY_THRESHOLD = 500.0       # Filter unrealistic speeds
 
-MIN_FRAMES_FOR_ANALYSIS = 10          # Reduced for faster detection
+MIN_FRAMES_FOR_ANALYSIS = 8       # Reduced for faster detection
 CONFIDENCE_THRESHOLD = 0.5
 
 # Enhanced filtering (optional features)
@@ -223,17 +223,15 @@ class BalancedPersonTracker:
         # PRIMARY CRITERION: Velocity (most important for CCTV)
         avg_velocity = np.mean(list(self.velocities)[-6:]) if len(self.velocities) >= 3 else self.current_velocity
         
-        # BASIC CLASSIFICATION based on velocity
-        if avg_velocity >= SECONDARY_VELOCITY_THRESHOLD:
-            # High velocity - likely running
+        # STRICT CLASSIFICATION based on velocity
+        if avg_velocity >= PRIMARY_VELOCITY_THRESHOLD:
+            # Only classify as RUNNING if velocity exceeds threshold
             base_classification = "RUNNING"
-            base_confidence = min(0.9, 0.7 + (avg_velocity - SECONDARY_VELOCITY_THRESHOLD) / 200.0)
-        elif avg_velocity >= PRIMARY_VELOCITY_THRESHOLD:
-            # Medium velocity - check additional features
-            base_classification = "RUNNING"
-            base_confidence = 0.6 + (avg_velocity - PRIMARY_VELOCITY_THRESHOLD) / (SECONDARY_VELOCITY_THRESHOLD - PRIMARY_VELOCITY_THRESHOLD) * 0.2
+            if avg_velocity >= SECONDARY_VELOCITY_THRESHOLD:
+                base_confidence = min(0.9, 0.7 + (avg_velocity - SECONDARY_VELOCITY_THRESHOLD) / 200.0)
+            else:
+                base_confidence = 0.6 + (avg_velocity - PRIMARY_VELOCITY_THRESHOLD) / (SECONDARY_VELOCITY_THRESHOLD - PRIMARY_VELOCITY_THRESHOLD) * 0.2
         else:
-            # Low velocity
             base_classification = "NOT RUNNING"
             base_confidence = min(0.85, 0.6 + (PRIMARY_VELOCITY_THRESHOLD - avg_velocity) / PRIMARY_VELOCITY_THRESHOLD * 0.25)
         
